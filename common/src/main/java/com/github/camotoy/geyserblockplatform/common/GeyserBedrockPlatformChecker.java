@@ -2,7 +2,7 @@ package com.github.camotoy.geyserblockplatform.common;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
 
 import java.util.UUID;
 
@@ -14,10 +14,10 @@ public class GeyserBedrockPlatformChecker implements BedrockPlatformChecker {
     }
 
     @Override
-    public DeviceOS getBedrockPlatform(UUID uuid) {
+    public DeviceOs getBedrockPlatform(UUID uuid) {
         GeyserSession session = connector.getPlayerByUuid(uuid);
         if (session != null) {
-            return DeviceOsFixer.getProperDeviceOs(session.getClientData().getDeviceOS());
+            return session.getClientData().getDeviceOs();
         }
         return null;
     }

@@ -1,6 +1,7 @@
 package com.github.camotoy.geyserblockplatform.spigot;
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.github.camotoy.geyserblockplatform.common.FloodgateBedrockPlatformChecker;
 import com.github.camotoy.geyserblockplatform.common.GeyserBedrockPlatformChecker;
 import com.github.camotoy.geyserblockplatform.common.BedrockPlatformChecker;
 import org.bukkit.Bukkit;
@@ -8,23 +9,23 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public final class GeyserBlockPlatform extends JavaPlugin implements Listener {
     private BedrockPlatformChecker platformChecker;
-    private List<DeviceOS> supportedDeviceOSList;
+    private Set<DeviceOs> supportedDeviceOsList;
 
     @Override
     public void onEnable() {
-        boolean hasFloodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null;
+        boolean hasFloodgate = Bukkit.getPluginManager().getPlugin("floodgate") != null;
         boolean hasGeyser = Bukkit.getPluginManager().getPlugin("Geyser-Spigot") != null;
         if (!hasFloodgate && !hasGeyser) {
             getLogger().warning("There is no Geyser or Floodgate plugin detected! Disabling...");
@@ -53,23 +54,23 @@ public final class GeyserBlockPlatform extends JavaPlugin implements Listener {
             throw new RuntimeException("Could not understand the contents of the config! " + e);
         }
 
-        supportedDeviceOSList = new ArrayList<>();
+        supportedDeviceOsList = new HashSet<>();
 
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.UNKNOWN, config::isUnknownEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.ANDROID, config::isAndroidEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.IOS, config::isIosEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.OSX, config::isMacOsEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.FIREOS, config::isFireOsEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.GEARVR, config::isGearVrEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.WIN10, config::isWindows10Enabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.WIN32, config::isWindowsEduEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.ORBIS, config::isPs4Enabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.SWITCH, config::isSwitchEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.XBOX_ONE, config::isXboxOneEnabled);
-        addValueIfTrue(supportedDeviceOSList, DeviceOS.WIN_PHONE, config::isWindowsPhoneEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.UNKNOWN, config::isUnknownEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.GOOGLE, config::isAndroidEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.IOS, config::isIosEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.OSX, config::isMacOsEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.AMAZON, config::isFireOsEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.GEARVR, config::isGearVrEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.UWP, config::isWindows10Enabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.WIN32, config::isWindowsEduEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.PS4, config::isPs4Enabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.NX, config::isSwitchEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.XBOX, config::isXboxOneEnabled);
+        addValueIfTrue(supportedDeviceOsList, DeviceOs.WINDOWS_PHONE, config::isWindowsPhoneEnabled);
 
         if (hasFloodgate) {
-            this.platformChecker = new FloodgateSpigotBedrockPlatformChecker();
+            this.platformChecker = new FloodgateBedrockPlatformChecker();
         } else {
             this.platformChecker = new GeyserBedrockPlatformChecker();
         }
@@ -77,9 +78,9 @@ public final class GeyserBlockPlatform extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
-    private void addValueIfTrue(List<DeviceOS> list, DeviceOS deviceOS, Supplier<Boolean> function) {
+    private void addValueIfTrue(Set<DeviceOs> set, DeviceOs deviceOS, Supplier<Boolean> function) {
         if (function.get()) {
-            list.add(deviceOS);
+            set.add(deviceOS);
         }
     }
 
@@ -89,11 +90,11 @@ public final class GeyserBlockPlatform extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        DeviceOS deviceOS = this.platformChecker.getBedrockPlatform(event.getPlayer().getUniqueId());
+        DeviceOs deviceOS = this.platformChecker.getBedrockPlatform(event.getPlayer().getUniqueId());
         if (deviceOS == null) {
             return;
         }
-        if (!supportedDeviceOSList.contains(deviceOS)) {
+        if (!supportedDeviceOsList.contains(deviceOS)) {
             event.getPlayer().kickPlayer("This server cannot be joined with your Bedrock platform!");
         }
     }
